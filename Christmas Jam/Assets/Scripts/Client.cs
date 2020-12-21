@@ -1,38 +1,44 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Text;
 using UnityEngine;
-using NativeWebSocket;
+using Mirror.SimpleWeb;
 
 public class Client : MonoBehaviour
 {
-    private WebSocket _ws;
+    private SimpleWebClient _ws;
     // Start is called before the first frame update
     void Start()
     {
-        _ws = new WebSocket("ws://localhost:9001");
-        _ws.OnOpen += () =>
+        TcpConfig tcpConfig = new TcpConfig(true, 5000, 20000);
+        _ws = SimpleWebClient.Create(16*1024, 1000, tcpConfig);
+        Uri serverAddress = new Uri("ws://localhost:9001");
+        _ws.Connect(serverAddress);
+        _ws.onConnect += delegate
         {
             Debug.Log("Client connected");
-            _ws.SendText("Hello from client");
+            byte[] bytes = Encoding.UTF8.GetBytes("Hello from client");
+            _ws.Send(new ArraySegment<byte>(bytes));
         };
-        _ws.OnMessage += delegate(byte[] data)
+        _ws.onData += delegate(ArraySegment<byte> bytes)
         {
-            var message = System.Text.Encoding.UTF8.GetString(data);
+            var message = System.Text.Encoding.UTF8.GetString(bytes.Array);
             Debug.Log(message);
         };
+        _ws.onError += delegate(Exception exception)
+        {
+            Debug.Log("Error: " + exception.Message);
+        };
     }
 
-    private async void OnDestroy()
+    private void OnDestroy()
     {
-        await _ws.Close();
+        _ws.Disconnect();
     }
 
-    // Update is called once per frame
-    void Update()
+    void LateUpdate()
     {
-        #if !UNITY_WEBGL || UNITY_EDITOR
-            _ws.DispatchMessageQueue();
-        #endif
+        _ws.ProcessMessageQueue(this);
     }
 }

@@ -1,53 +1,63 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
+using System.Text;
 using UnityEngine;
-using WebSocketSharp;
-using WebSocketSharp.Net;
-using WebSocketSharp.Server;
-
-public class Game : WebSocketBehavior
-{
-    protected override void OnMessage(MessageEventArgs e)
-    {
-        Debug.Log(e.Data);
-        Send("Hello from server");
-    }
-
-    protected override void OnOpen()
-    {
-        Debug.Log("Client connected");
-    }
-}
+using Mirror.SimpleWeb;
 
 public class Server : MonoBehaviour
 {
+    private SimpleWebServer _webServer;
+    
     // Start is called before the first frame update
     void Start()
     {
-        WebSocketServer wssv;
+        SslConfig sslConfig;
+        TcpConfig tcpConfig = new TcpConfig(true, 5000, 20000);
         if (Application.isBatchMode)
         {
             Debug.Log("Setting up secure server");
-            wssv = new WebSocketServer(9001, true);
-            wssv.SslConfiguration.EnabledSslProtocols = SslProtocols.None;
-            wssv.SslConfiguration.ServerCertificate = new X509Certificate2("cert.pks");
+            sslConfig = new SslConfig(true, "cert.pks", "", SslProtocols.None);
         }
         else
         {  
             Debug.Log("Setting up non secure server");
-            wssv = new WebSocketServer(9001);
+            sslConfig = new SslConfig(false, "cert.pks", "", SslProtocols.None);
         }
-        wssv.AddWebSocketService<Game>("/christmasGame");
-        wssv.Start();
+        _webServer = new SimpleWebServer(10000, tcpConfig, 16*1024, 3000, sslConfig);
+        _webServer.Start(Constants.GAME_PORT);
         
         Debug.Log("Server started");
+        
+        _webServer.onConnect += delegate(int i)
+        {
+            Debug.Log("Client connected");
+            byte[] bytes = Encoding.UTF8.GetBytes("Hello from server");
+            _webServer.SendOne(i, new ArraySegment<byte>(bytes));
+        };
+        
+        _webServer.onData += delegate(int i, ArraySegment<byte> bytes)
+        {
+            var message = Encoding.UTF8.GetString(bytes.Array);
+            Debug.Log("Server received: " + message);
+        };
+        
+        _webServer.onError += delegate(int i, Exception exception)
+        {
+            Debug.Log("Error: " + exception.Message);
+        };
+        
+        _webServer.onDisconnect += delegate(int i)
+        {
+            Debug.Log("Client disconnected");
+        };
     }
 
     // Update is called once per frame
-    void Update()
+    void LateUpdate()
     {
-        
+        _webServer.ProcessMessageQueue(this);
     }
 }
