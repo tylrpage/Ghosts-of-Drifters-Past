@@ -11,10 +11,7 @@ public class Client : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        TcpConfig tcpConfig = new TcpConfig(true, 5000, 20000);
-        _ws = SimpleWebClient.Create(16*1024, 1000, tcpConfig);
-        Uri serverAddress = new Uri("ws://localhost:9001");
-        _ws.Connect(serverAddress);
+        
         _ws.onConnect += delegate
         {
             Debug.Log("Client connected");
@@ -30,6 +27,34 @@ public class Client : MonoBehaviour
         {
             Debug.Log("Error: " + exception.Message);
         };
+    }
+
+    public void Connect(bool isRemote)
+    {
+        TcpConfig tcpConfig = new TcpConfig(true, 5000, 20000);
+        _ws = SimpleWebClient.Create(16*1024, 1000, tcpConfig);
+        UriBuilder builder;
+        
+        if (isRemote)
+        {
+            builder = new UriBuilder()
+            {
+                Scheme = "wss",
+                Host = "tylrpage.com",
+                Port = Constants.GAME_PORT
+            };
+        }
+        else
+        {
+            builder = new UriBuilder()
+            {
+                Scheme = "ws",
+                Host = "localhost",
+                Port = Constants.GAME_PORT
+            };
+        }
+        Debug.Log("Connecting to " + builder.Uri);
+        _ws.Connect(builder.Uri);
     }
 
     private void OnDestroy()

@@ -19,12 +19,12 @@ public class Server : MonoBehaviour
         if (Application.isBatchMode)
         {
             Debug.Log("Setting up secure server");
-            sslConfig = new SslConfig(true, "cert.pks", "", SslProtocols.None);
+            sslConfig = new SslConfig(true, "cert.pfx", "", SslProtocols.Tls12);
         }
         else
         {  
             Debug.Log("Setting up non secure server");
-            sslConfig = new SslConfig(false, "cert.pks", "", SslProtocols.None);
+            sslConfig = new SslConfig(false, "", "", SslProtocols.Tls12);
         }
         _webServer = new SimpleWebServer(10000, tcpConfig, 16*1024, 3000, sslConfig);
         _webServer.Start(Constants.GAME_PORT);
