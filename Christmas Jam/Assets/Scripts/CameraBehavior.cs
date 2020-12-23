@@ -9,7 +9,7 @@ public class CameraBehavior : MonoBehaviour
 
     public Vector3 Offset;
 
-    private Vector3 IdealPosition => ModelTarget.position + ModelTarget.rotation * Offset * (1 + 0.2f * sphereRigidbody.velocity.magnitude);
+    private Vector3 IdealPosition => ModelTarget.position + ModelTarget.rotation * Offset * (1 + 0.05f * sphereRigidbody.velocity.magnitude);
 
     // Start is called before the first frame update
     void Start()
