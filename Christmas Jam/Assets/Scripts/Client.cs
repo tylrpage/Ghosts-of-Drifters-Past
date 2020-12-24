@@ -8,9 +8,12 @@ using Mirror.SimpleWeb;
 public class Client : MonoBehaviour
 {
     private SimpleWebClient _ws;
-    // Start is called before the first frame update
+    private Dictionary<int, GameObject> _ghostCars;
     void Start()
     {
+        TcpConfig tcpConfig = new TcpConfig(true, 5000, 20000);
+        _ws = SimpleWebClient.Create(16*1024, 1000, tcpConfig);
+        
         
         _ws.onConnect += delegate
         {
@@ -31,8 +34,6 @@ public class Client : MonoBehaviour
 
     public void Connect(bool isRemote)
     {
-        TcpConfig tcpConfig = new TcpConfig(true, 5000, 20000);
-        _ws = SimpleWebClient.Create(16*1024, 1000, tcpConfig);
         UriBuilder builder;
         
         if (isRemote)

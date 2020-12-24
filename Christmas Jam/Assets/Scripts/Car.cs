@@ -30,6 +30,12 @@ public class Car : MonoBehaviour
     void Update()
     {
         _inputDir = new Vector3(Input.GetAxis("Horizontal"), 0, Input.GetAxisRaw("Vertical"));
+        
+        if (_inputDir != Vector3.zero && !GameTimer.Running)
+        {
+            GameTimer.RestartTimer();
+        }
+        
         float rotationMult = RotSpeed * Sphere.velocity.magnitude;
 
         if (Input.GetKey(KeyCode.Space))
@@ -69,7 +75,7 @@ public class Car : MonoBehaviour
         {
             Sphere.AddForce(Model.forward * _inputDir.z * _forceMult, ForceMode.Force);
         }
-        Sphere.AddForce(Vector3.down * 10f, ForceMode.Force);
+        //Sphere.AddForce(Vector3.down * 10f, ForceMode.Force);
         _speed = Vector3.Dot(transform.forward, Sphere.velocity);
     }
 

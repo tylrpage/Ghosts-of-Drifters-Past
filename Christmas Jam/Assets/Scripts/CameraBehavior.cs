@@ -14,7 +14,7 @@ public class CameraBehavior : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        transform.position = ModelTarget.position + Offset;
+        
     }
 
     // Update is called once per frame
