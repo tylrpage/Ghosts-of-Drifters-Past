@@ -16,6 +16,7 @@ public class GameTimer : MonoBehaviour
     
     public static float LapTime { get; private set; }
     public static bool Running { get; private set; } = false;
+    public static float BestTime = -1f;
 
     private Vector3 _initialPos;
     private Quaternion _initialRot;
@@ -30,8 +31,9 @@ public class GameTimer : MonoBehaviour
     {
         if (PlayerPrefs.HasKey("Time"))
         {
+            BestTime = PlayerPrefs.GetFloat("Time");
             BestText.enabled = true;
-            BestText.text = "Best: " + PlayerPrefs.GetFloat("Time");
+            BestText.text = "Best: " + (Mathf.Round(BestTime * 100) / 100f) + "s";
         }
         else
         {
@@ -71,7 +73,7 @@ public class GameTimer : MonoBehaviour
         if (!PlayerPrefs.HasKey("Time") || PlayerPrefs.GetFloat("Time") > GameTimer.LapTime)
         {
             // Record!
-            PlayerPrefs.SetFloat("Time", GameTimer.LapTime);
+            PlayerPrefs.SetFloat("Time", Mathf.Round(LapTime * 100) / 100f);
         }
         RestartTimer();
     }

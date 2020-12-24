@@ -6,14 +6,28 @@ using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using UnityEngine;
 using Mirror.SimpleWeb;
+using NetStack.Quantization;
+using NetStack.Serialization;
 
 public class Server : MonoBehaviour
 {
-    private SimpleWebServer _webServer;
+    [SerializeField] private float SendInterval;
     
+    private SimpleWebServer _webServer;
+    private Dictionary<ushort, uint[]> _playerTransforms;
+    private BitBuffer _bitBuffer = new BitBuffer(1024);
+    private byte[] _smallBuffer = new byte[10];
+    private byte[] _bigBuffer = new byte[2000];
+    private float _timeSinceLastSend;
+    private List<int> _connectionIds;
+     
     // Start is called before the first frame update
     void Start()
     {
+        _timeSinceLastSend = Time.time;
+        _playerTransforms = new Dictionary<ushort, uint[]>();
+        _connectionIds = new List<int>();
+
         SslConfig sslConfig;
         TcpConfig tcpConfig = new TcpConfig(true, 5000, 20000);
         if (Application.isBatchMode)
@@ -31,33 +45,96 @@ public class Server : MonoBehaviour
         
         Debug.Log("Server started");
         
-        _webServer.onConnect += delegate(int i)
-        {
-            Debug.Log("Client connected");
-            byte[] bytes = Encoding.UTF8.GetBytes("Hello from server");
-            _webServer.SendOne(i, new ArraySegment<byte>(bytes));
-        };
+        _webServer.onConnect += WebServerOnonConnect;
         
-        _webServer.onData += delegate(int i, ArraySegment<byte> bytes)
-        {
-            var message = Encoding.UTF8.GetString(bytes.Array);
-            Debug.Log("Server received: " + message);
-        };
+        _webServer.onData += WebServerOnonData;
         
         _webServer.onError += delegate(int i, Exception exception)
         {
             Debug.Log("Error: " + exception.Message);
         };
         
-        _webServer.onDisconnect += delegate(int i)
+        _webServer.onDisconnect += WebServerOnonDisconnect;
+    }
+
+    private void WebServerOnonConnect(int id)
+    {
+        _connectionIds.Add(id);
+        _playerTransforms[(ushort)id] = null;
+        
+        _bitBuffer.Clear();
+        _bitBuffer.AddUShort(2); // id notification message
+        _bitBuffer.AddUShort((ushort) id);
+        _bitBuffer.ToArray(_smallBuffer);
+        _webServer.SendOne(id, new ArraySegment<byte>(_smallBuffer, 0, 4));
+    }
+
+    private void WebServerOnonDisconnect(int id)
+    {
+        _connectionIds.Remove(id);
+        
+        ushort shortId = (ushort) id;
+        if (_playerTransforms.ContainsKey(shortId))
         {
-            Debug.Log("Client disconnected");
-        };
+            _playerTransforms.Remove(shortId);
+        }
+        
+        _bitBuffer.Clear();
+        _bitBuffer.AddUShort(0); // send a disconnect message
+        _bitBuffer.AddUShort(shortId);
+        _bitBuffer.ToArray(_smallBuffer);
+        _webServer.SendAll(_connectionIds, new ArraySegment<byte>(_smallBuffer));
+    }
+
+    private void WebServerOnonData(int id, ArraySegment<byte> data)
+    {
+        ushort shortId = (ushort) id;
+        if (_playerTransforms[shortId] == null)
+        {
+            _playerTransforms[shortId] = new uint[8];
+        }
+        _bitBuffer.Clear();
+        _bitBuffer.FromArray(data.Array, data.Count);
+
+        for (int i = 0; i < 8; i++)
+        {
+            _playerTransforms[shortId][i] = _bitBuffer.ReadUInt();
+        }
     }
 
     // Update is called once per frame
     void LateUpdate()
     {
         _webServer.ProcessMessageQueue(this);
+
+        if (Time.time - _timeSinceLastSend > SendInterval)
+        {
+            _timeSinceLastSend = Time.time;
+            ushort validCount = 0; //incremented every loop where player transform isnt null
+
+            _bitBuffer.Clear();
+            _bitBuffer.AddUShort(1); // state message
+            _bitBuffer.AddUShort((ushort) _playerTransforms.Count);
+            foreach (var player in _playerTransforms)
+            {
+                if (player.Value != null)
+                {
+                    validCount++;
+                    _bitBuffer.AddUShort(player.Key);
+                    for (int i = 0; i < 8; i++)
+                    {
+                        _bitBuffer.AddUInt(player.Value[i]);
+                    }
+                }
+            }
+            
+            _bitBuffer.ToArray(_bigBuffer);
+            _webServer.SendAll(_connectionIds, new ArraySegment<byte>(_bigBuffer, 0, 6 + 30 * validCount));
+        }
+    }
+
+    private void OnDestroy()
+    {
+        _webServer.Stop();
     }
 }
