@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class GhostCarBehavior : MonoBehaviour
 {
@@ -16,8 +17,13 @@ public class GhostCarBehavior : MonoBehaviour
 
     private void Awake()
     {
-        _textMesh = TimeTextTransform.GetComponent<TextMesh>();
+        DontDestroyOnLoad(this.gameObject);
         _cameraTransform = GameObject.Find("Camera").transform;
+        SceneManager.sceneLoaded += delegate(Scene arg0, LoadSceneMode mode)
+        {
+            _cameraTransform = GameObject.Find("Camera").transform;
+        };
+        _textMesh = TimeTextTransform.GetComponent<TextMesh>();
     }
 
     // Start is called before the first frame update

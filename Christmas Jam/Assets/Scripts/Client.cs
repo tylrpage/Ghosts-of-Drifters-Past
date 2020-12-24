@@ -101,7 +101,7 @@ public class Client : MonoBehaviour
                     ushort qBestTime = _bitBuffer.ReadUShort();
 
                     // Ignore it if it is the transform for my own car
-                    if (_myId == id)
+                    if (_myId == id || id == 0)
                     {
                         continue;
                     }
@@ -163,7 +163,7 @@ public class Client : MonoBehaviour
 
     private void OnDestroy()
     {
-        if (_ws != null && _ws.ConnectionState == ClientState.Connected)
+        if (_ws != null)
         {
             _ws.Disconnect();
         }
@@ -172,25 +172,28 @@ public class Client : MonoBehaviour
     void LateUpdate()
     {
         _ws.ProcessMessageQueue(this);
-
-        if (Time.time - _timeSinceLastSend > SendInterval)
+        
+        if (_ws.ConnectionState == ClientState.Connected)
         {
-            _timeSinceLastSend = Time.time;
+            if (Time.time - _timeSinceLastSend > SendInterval)
+            {
+                _timeSinceLastSend = Time.time;
 
-            QuantizedVector3 qPosition = BoundedRange.Quantize(_modelTransform.position, Constants.WORLD_BOUNDS);
-            QuantizedQuaternion qRotation = SmallestThree.Quantize(_modelTransform.rotation);
-            ushort qBestTime = HalfPrecision.Quantize(GameTimer.BestTime);
-            _bitBuffer.Clear();
-            _bitBuffer.AddUInt(qPosition.x)
-                .AddUInt(qPosition.y)
-                .AddUInt(qPosition.z)
-                .AddUInt(qRotation.m)
-                .AddUInt(qRotation.a)
-                .AddUInt(qRotation.b)
-                .AddUInt(qRotation.c)
-                .AddUShort(qBestTime)
-                .ToArray(_byteBuffer);
-            _ws.Send(new ArraySegment<byte>(_byteBuffer, 0, 28));
+                QuantizedVector3 qPosition = BoundedRange.Quantize(_modelTransform.position, Constants.WORLD_BOUNDS);
+                QuantizedQuaternion qRotation = SmallestThree.Quantize(_modelTransform.rotation);
+                ushort qBestTime = HalfPrecision.Quantize(GameTimer.BestTime);
+                _bitBuffer.Clear();
+                _bitBuffer.AddUInt(qPosition.x)
+                    .AddUInt(qPosition.y)
+                    .AddUInt(qPosition.z)
+                    .AddUInt(qRotation.m)
+                    .AddUInt(qRotation.a)
+                    .AddUInt(qRotation.b)
+                    .AddUInt(qRotation.c)
+                    .AddUShort(qBestTime)
+                    .ToArray(_byteBuffer);
+                _ws.Send(new ArraySegment<byte>(_byteBuffer, 0, 28));
+            }
         }
     }
 }

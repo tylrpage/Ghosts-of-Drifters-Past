@@ -217,7 +217,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0d01a7a1360561746ba79dec5c638db5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  SendInterval: 0.05
+  SendInterval: 0.08
+  KickTime: 15
 --- !u!1 &1695601848
 GameObject:
   m_ObjectHideFlags: 0
