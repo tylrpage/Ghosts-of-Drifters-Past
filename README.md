@@ -5,6 +5,6 @@ Slide down a snowy mountain top in an AE86 in this online multiplayer browser ga
 [Play the game here!](https://tylr.itch.io/ghosts-of-drifters-past)
 
 # Screenshots and gameplay
-![Gameplay gif](https://media.giphy.com/media/OdTg6xGlWV0C8PBNg6/giphy.gif)
+![Gameplay gif](https://media3.giphy.com/media/OdTg6xGlWV0C8PBNg6/giphy.gif)
 ![Multiplayer screenshot 1](https://i.imgur.com/e6NO2rB.png)
 ![Multiplayer screenshot 1](https://i.imgur.com/2wkX144.png)
