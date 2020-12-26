@@ -1,0 +1,11 @@
+Game Notes
+
+- Map is very open to exploits
+  - Players will focus on exploits if given the oppurtunity
+- Taylor: engine noises are quiet
+- Car horn for some player interaction
+- Game is too difficult or frustrating for some players, the second to last turn
+  sometimes makes people quit, because of no checkpoint and not knowing
+  that it is very close to the end
+- Some new players followed the skipper off the cliff like lemmings
+- Something asked for a smaller circuit
