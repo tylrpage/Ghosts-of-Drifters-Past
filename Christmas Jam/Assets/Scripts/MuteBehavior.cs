@@ -5,10 +5,16 @@ using UnityEngine;
 
 public class MuteBehavior : MonoBehaviour
 {
-    [SerializeField] private AudioListener _listener;
+    private void Update()
+    {
+        if (Input.GetKeyDown(KeyCode.M))
+        {
+            ToggleMute();
+        }
+    }
 
     public void ToggleMute()
     {
-        _listener.enabled = !_listener.enabled;
+        AudioListener.pause = !AudioListener.pause;
     }
 }

@@ -19,12 +19,6 @@ public class Car : MonoBehaviour
     private float _forceMult;
     private float _driftRotMult = 0;
     private bool _grounded = false;
-    
-    // Start is called before the first frame update
-    void Start()
-    {
-        
-    }
 
     // Update is called once per frame
     void Update()
