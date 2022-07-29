@@ -1,30 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="ContentModelUserStore">
+  <component name="UserContentModel">
     <attachedFolders />
-    <explicitIncludes>
-      <Path>Library/PackageCache/com.unity.collab-proxy@1.2.16</Path>
-      <Path>Library/PackageCache/com.unity.ext.nunit@1.0.0</Path>
-      <Path>Library/PackageCache/com.unity.ide.rider@1.1.4</Path>
-      <Path>Library/PackageCache/com.unity.ide.vscode@1.2.1</Path>
-      <Path>Library/PackageCache/com.unity.probuilder@4.2.3</Path>
-      <Path>Library/PackageCache/com.unity.progrids@3.0.3-preview.6</Path>
-      <Path>Library/PackageCache/com.unity.settings-manager@1.0.2</Path>
-      <Path>Library/PackageCache/com.unity.test-framework@1.1.16</Path>
-      <Path>Library/PackageCache/com.unity.textmeshpro@2.1.1</Path>
-      <Path>Library/PackageCache/com.unity.timeline@1.2.16</Path>
-      <Path>Packages</Path>
-      <Path>ProjectSettings</Path>
-    </explicitIncludes>
-    <explicitExcludes>
-      <Path>.git</Path>
-      <Path>.idea</Path>
-      <Path>Builds</Path>
-      <Path>Library</Path>
-      <Path>Logs</Path>
-      <Path>Media</Path>
-      <Path>Temp</Path>
-      <Path>obj</Path>
-    </explicitExcludes>
+    <explicitIncludes />
+    <explicitExcludes />
   </component>
 </project>
