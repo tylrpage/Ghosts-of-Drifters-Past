@@ -18,7 +18,6 @@ public class Server : MonoBehaviour
     private BitBuffer _bitBuffer = new BitBuffer(1024);
     private byte[] _smallBuffer = new byte[10];
     private byte[] _bigBuffer = new byte[2000];
-    private float _timeSinceLastSend;
     private List<int> _connectionIds;
      
     // Start is called before the first frame update
@@ -28,7 +27,6 @@ public class Server : MonoBehaviour
         Application.targetFrameRate = targetFps;
         Debug.Log($"Targeting fps of: {targetFps}");
         
-        _timeSinceLastSend = Time.time;
         _playerTransforms = new Dictionary<ushort, uint[]>();
         _connectionIds = new List<int>();
 
@@ -109,36 +107,31 @@ public class Server : MonoBehaviour
             _playerTransforms[shortId][i] = _bitBuffer.ReadUInt();
         }
     }
-
-    // Update is called once per frame
+    
     void LateUpdate()
     {
         _webServer.ProcessMessageQueue(this);
 
-        if (Time.time - _timeSinceLastSend > SendInterval)
-        {
-            _timeSinceLastSend = Time.time;
-            ushort validCount = 0; //incremented every loop where player transform isnt null
+        ushort validCount = 0; //incremented every loop where player transform isnt null
 
-            _bitBuffer.Clear();
-            _bitBuffer.AddUShort(1); // state message
-            _bitBuffer.AddUShort((ushort) _playerTransforms.Count);
-            foreach (var player in _playerTransforms)
+        _bitBuffer.Clear();
+        _bitBuffer.AddUShort(1); // state message
+        _bitBuffer.AddUShort((ushort) _playerTransforms.Count);
+        foreach (var player in _playerTransforms)
+        {
+            if (player.Value != null)
             {
-                if (player.Value != null)
+                validCount++;
+                _bitBuffer.AddUShort(player.Key);
+                for (int i = 0; i < 8; i++)
                 {
-                    validCount++;
-                    _bitBuffer.AddUShort(player.Key);
-                    for (int i = 0; i < 8; i++)
-                    {
-                        _bitBuffer.AddUInt(player.Value[i]);
-                    }
+                    _bitBuffer.AddUInt(player.Value[i]);
                 }
             }
-            
-            _bitBuffer.ToArray(_bigBuffer);
-            _webServer.SendAll(_connectionIds, new ArraySegment<byte>(_bigBuffer, 0, 6 + 30 * validCount));
         }
+            
+        _bitBuffer.ToArray(_bigBuffer);
+        _webServer.SendAll(_connectionIds, new ArraySegment<byte>(_bigBuffer, 0, 6 + 30 * validCount));
     }
 
     private void OnDestroy()
