@@ -24,6 +24,10 @@ public class Server : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        int targetFps = (int)Mathf.Ceil(1 / SendInterval);
+        Application.targetFrameRate = targetFps;
+        Debug.Log($"Targeting fps of: {targetFps}");
+        
         _timeSinceLastSend = Time.time;
         _playerTransforms = new Dictionary<ushort, uint[]>();
         _connectionIds = new List<int>();
@@ -67,6 +71,8 @@ public class Server : MonoBehaviour
         _bitBuffer.AddUShort((ushort) id);
         _bitBuffer.ToArray(_smallBuffer);
         _webServer.SendOne(id, new ArraySegment<byte>(_smallBuffer, 0, 4));
+        
+        Debug.Log($"Player connected, player count: {_playerTransforms.Count}");
     }
 
     private void WebServerOnonDisconnect(int id)
@@ -84,6 +90,8 @@ public class Server : MonoBehaviour
         _bitBuffer.AddUShort(shortId);
         _bitBuffer.ToArray(_smallBuffer);
         _webServer.SendAll(_connectionIds, new ArraySegment<byte>(_smallBuffer));
+        
+        Debug.Log($"Player disconnected, player count: {_playerTransforms.Count}");
     }
 
     private void WebServerOnonData(int id, ArraySegment<byte> data)
